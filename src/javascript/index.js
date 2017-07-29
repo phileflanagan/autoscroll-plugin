@@ -8,12 +8,15 @@
     this.isMouseOver = false;
     this.isRunning = false;
     this.thrownInterval = null;
+    this.timeout = null;
     this.previousScrollTop = null;
 
     var defaults = {
       speed: 10,
       pauseBottom: 500,
-      pauseStart: 500
+      pauseStart: 500,
+      requestAnimationFrame: true,
+      timeoutRate: 30
     };
 
     if (options && typeof options === 'object') {
@@ -28,8 +31,14 @@
   AutoScroll.prototype.autoScroll = function() {
     if (this.isRunning && !this.isBeingThrown && !this.isMouseOver) {
       if (this.el.scrollTop < this.el.scrollHeight - this.el.offsetHeight) {
-        window.requestAnimationFrame(this.autoScroll.bind(this));
-        this.el.scrollTop += this.speed;
+        if (this.options.requestAnimationFrame) {
+          this.el.scrollTop += this.speed;
+          window.requestAnimationFrame(this.autoScroll.bind(this));
+        } else {
+          this.el.scrollTop += this.speed;
+          if (this.timeout) clearTimeout(this.timeout);
+          this.timeout = setTimeout(this.autoScroll.bind(this), this.options.timeoutRate)
+        }
       } else {
         this.isRunning = false;
         setTimeout(this.resetScroll.bind(this), this.options.pauseBottom);
@@ -119,8 +128,9 @@ var element1 = document.getElementById('element1');
 var element2 = document.getElementById('element2');
 
 var Scroller1 = new AutoScroll(element1, {
-  speed: 60
+  speed: 5,
+  requestAnimationFrame: false
 });
 var Scroller2 = new AutoScroll(element2, {
-  speed: 120
+  speed: 120,
 });

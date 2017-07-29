@@ -5,12 +5,16 @@ body {
 	text-align: center;
 }
 
-h1 {
+h1, h2 {
 	color: skyblue;
 	font-weight: lighter;
 	margin-bottom: 0.2em;
 	letter-spacing: 0.3em;
 	text-transform: lowercase;
+}
+
+h1 {
+	color: white;
 }
 
 
