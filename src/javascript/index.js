@@ -1,61 +1,97 @@
 (function() {
     window.AutoScroll2 = function(el, options) {
         this.el = el;
+
         this.speed = null;
+        this.isBeingThrown = false;
+        this.isMouseOver = false;
+        this.isRunning = false;
+        this.thrownInterval = null;
+        this.previousScrollTop = null;
 
         var defaults = {
-            scrollDistancePerSecond: 10,
+            speed: 10,
             pauseBottom: 500,
             pauseStart: 500
         };
 
         if (options && typeof options === 'object') {
-            this.options = extendDefaults(defaults, arguments[0]);
+            this.options = extendDefaults(defaults, options);
         } else {
             this.options = defaults;
         }
-        console.log('options', this.options);
 
         _init.call(this);
     }
 
+    AutoScroll2.prototype.autoScroll = function() {
+        if (this.isRunning && !this.isBeingThrown && !this.isMouseOver) {
+            if (this.el.scrollTop < this.el.scrollHeight - this.el.offsetHeight) {
+                window.requestAnimationFrame(this.autoScroll.bind(this));
+                this.el.scrollTop += this.speed;
+            } else {
+                this.isRunning = false;
+                setTimeout(this.resetScroll.bind(this), this.options.pauseBottom);
+            }
+        } else {
+            return;
+        }
+    }
+
     AutoScroll2.prototype.startScroll = function() {
-        console.log('start')
+        this.isRunning = true;
+        this.autoScroll.call(this);
     }
 
     AutoScroll2.prototype.pauseScroll = function() {
-        console.log('pause')
+        this.isRunning = false;
     }
 
     AutoScroll2.prototype.resetScroll = function() {
-        console.log('reset')
+        this.el.scrollTop = 0;
+        setTimeout(this.startScroll.bind(this), this.options.pauseStart);
     }
 
-    AutoScroll2.prototype.mobileTouchStart = function() {
-        console.log('mobile start')
+    AutoScroll2.prototype.mouseEnter = function(e) {
+        this.isMouseOver = true;
+        this.isRunning = false;
     }
 
-    AutoScroll2.prototype.mobileTouchEnd = function() {
-        console.log('mobile end');
+    AutoScroll2.prototype.mouseLeave = function(e) {
+        this.isMouseOver = false;
+        this.isRunning = true;
+        this.startScroll.call(this);
+    }
+
+    AutoScroll2.prototype.mobileTouchStart = function(e) {
+        this.isBeingThrown = true;
+    }
+
+    AutoScroll2.prototype.mobileTouchEnd = function(e) {
+        this.thrownInterval = setInterval(this.wasThrown.bind(this), 10);
     }
 
     AutoScroll2.prototype.wasThrown = function() {
-
+        if (this.previousScrollTop !== this.el.scrollTop) this.previousScrollTop = this.el.scrollTop;
+        else this.thrownEnd.call(this);
     }
 
     AutoScroll2.prototype.thrownEnd = function() {
-      
+        clearInterval(this.thrownInterval);
+        this.isBeingThrown = false;
+        this.startScroll.call(this);
     }
 
     // Private Methods
     function _init() {
-        this.speed = _setSpeed(this.options.scrollDistancePerSecond);
+        this.speed = _setSpeed(this.options.speed);
         _initEvents.call(this);
+        setTimeout(this.startScroll.bind(this), this.options.pauseStart);
     }
 
     function _initEvents() {
-        this.el.addEventListener('mouseover', this.pauseScroll.bind(this));
-        this.el.addEventListener('mouseleave', this.startScroll.bind(this));
+        this.el.addEventListener('mouseenter', this.mouseEnter.bind(this));
+        this.el.addEventListener('mouseleave', this.mouseLeave.bind(this));
         this.el.addEventListener('touchstart', this.mobileTouchStart.bind(this));
         this.el.addEventListener('touchend', this.mobileTouchEnd.bind(this));
     }
@@ -172,7 +208,9 @@ function AutoScroll(div, scrollDistancePerSecond) {
 var element1 = document.getElementById('element1');
 var element2 = document.getElementById('element2');
 
-var Scroller2 = new AutoScroll(element2);
-
-var Scroller3 = new AutoScroll2(element1);
-console.log(Scroller3)
+var Scroller1 = new AutoScroll2(element1, {
+    speed: 60
+});
+var Scroller2 = new AutoScroll2(element2, {
+    speed: 80
+});
