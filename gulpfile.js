@@ -48,7 +48,7 @@ gulp.task('js', function() {
          presets: ['es2015'],
          compact: true
        }))
-      .pipe(uglify())
+      // .pipe(uglify())
       .pipe(rename('index.min.js'))
       .pipe(gulp.dest('./dist/assets/javascript/'))
       .pipe(browserSync.reload({stream: true}));
