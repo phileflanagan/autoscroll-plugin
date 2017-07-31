@@ -1,8 +1,12 @@
 'use strict';
 (function() {
   window.AutoScroll = function(el, options) {
-    this.el = el;
+    // In case they forgot 'new'
+    if (!(this instanceof AutoScroll)) {
+      return new AutoScroll(el, options);
+    }
 
+    this.el = el;
     this.speed = null;
     this.isBeingThrown = false;
     this.isMouseOver = false;
